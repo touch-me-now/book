@@ -1,6 +1,8 @@
 from http import HTTPMethod
 
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import status
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
@@ -32,6 +34,10 @@ class BookViewSet(ReadOnlyModelViewSet):
     pagination_class = PageNumberPagination
     filter_backends = (BookCategoryFilter, SearchFilter)
     search_fields = ["title"]
+
+    @method_decorator(cache_page(60 * 60 * 2))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class ReviewListAPIView(ListAPIView):
