@@ -45,6 +45,7 @@ class ReviewTest(APITestCase):
         self.assertEquals(len(data["results"]), 1)
 
     def test_create_review(self):
+        # You must off throttling before running
         url = reverse("book-reviews-create")
         data = {"book": self.test_book.id, "rating": 1}
         response = self.client.post(url, data, format='json',

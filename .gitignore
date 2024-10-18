@@ -2,3 +2,6 @@
 db.sqlite3
 
 book/migrations/0*.py
+
+__pychache__/*.pyc
+*/__pychache__/*
