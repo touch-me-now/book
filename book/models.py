@@ -30,7 +30,8 @@ class Review(models.Model):
 
 
 def get_sentinel_user():
-    return get_user_model().objects.get_or_create(username="deleted")
+    sentinel_user, _ = get_user_model().objects.get_or_create(username="deleted")
+    return sentinel_user
 
 
 class ReviewLike(models.Model):
