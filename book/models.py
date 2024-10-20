@@ -9,6 +9,9 @@ class Category(models.Model):
     slug = models.SlugField(max_length=255, primary_key=True)
     title = models.CharField(max_length=255)
 
+    def __str__(self):
+        return self.slug
+
     class Meta:
         ordering = ["slug"]
         verbose_name_plural = _('Categories')
@@ -24,6 +27,9 @@ class Book(models.Model):
 
     class Meta:
         ordering = ["id"]
+
+    def __str__(self):
+        return f"{self.title} ({self.author})"
 
 
 class ReviewQuerySet(models.QuerySet):
@@ -74,12 +80,15 @@ class Review(models.Model):
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ["id"]
+
     @property
     def author(self):
         return self.user.username
 
-    class Meta:
-        ordering = ["id"]
+    def __str__(self):
+        return f"{self.author}({self.rating}) -> {self.book} "
 
 
 class ReviewReaction(models.Model):
@@ -92,6 +101,8 @@ class ReviewReaction(models.Model):
     user = models.ForeignKey(get_user_model(), on_delete=models.SET(get_sentinel_user), related_name="review_reacts")
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="reacts")
     reaction = models.CharField(max_length=4, choices=Reaction.choices, default=Reaction.like)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         constraints = (
