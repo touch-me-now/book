@@ -21,12 +21,52 @@ class Book(models.Model):
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
 
 
+class ReviewReactionQuerySet(models.QuerySet):
+    def calculated_reacts(self):
+        return self.raw(
+            f"""
+            SELECT 
+                br.id,
+                br.book_id,
+                br.user_id,
+                br.comment,
+                br.rating,
+                br.created_at,
+                ARRAY_AGG(
+                    CASE 
+                        WHEN rr.reaction IS NOT null THEN 
+                        JSON_BUILD_OBJECT(
+                            'reaction', rr.reaction,
+                            'count', rr.count
+                        )
+                    END
+                ) AS reactions
+            FROM book_review br
+            LEFT JOIN (
+                SELECT
+                    review_id,
+                    reaction,
+                    COUNT(reaction) AS count
+                FROM book_reviewreaction
+                GROUP BY review_id, reaction
+            ) rr ON br.id = rr.review_id
+            GROUP BY br.id
+            """
+        )
+
+
 class Review(models.Model):
+    objects = ReviewReactionQuerySet.as_manager()
+
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reviews")
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="reviews")
     comment = models.TextField(blank=True, null=True)
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def author(self):
+        return self.user.username
 
 
 def get_sentinel_user():
@@ -34,10 +74,23 @@ def get_sentinel_user():
     return sentinel_user
 
 
-class ReviewLike(models.Model):
-    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="likes")
-    user = models.ForeignKey(get_user_model(), on_delete=models.SET(get_sentinel_user), related_name="likes")
-    is_dislike = models.BooleanField(default=False)
+class ReviewReaction(models.Model):
+    class Reaction(models.TextChoices):
+        # I thought it would be nice to leave the possibility in the future
+        # to be able to expand the types of user reactions
+        like = "LIKE", _("like")
+        dislike = "DIS", _("dislike")
+
+    objects = ReviewReactionQuerySet.as_manager()
+
+    user = models.ForeignKey(get_user_model(), on_delete=models.SET(get_sentinel_user), related_name="review_reacts")
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="reacts")
+    reaction = models.CharField(max_length=4, choices=Reaction.choices, default=Reaction.like)
 
     class Meta:
-        unique_together = ["review", "user"]
+        constraints = (
+            models.UniqueConstraint(
+                fields=["review_id", "user_id"],
+                name="unique_user_react"
+            ),
+        )

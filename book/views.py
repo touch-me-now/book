@@ -1,20 +1,21 @@
 from http import HTTPMethod
 
-from django.shortcuts import get_object_or_404
+from django.http import Http404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView, CreateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.filters import BaseFilterBackend, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.throttling import UserRateThrottle
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.pagination import PageNumberPagination
 
-from book.models import Book, Review, ReviewLike
-from book.serializers import BookSerializer, ReviewSerializer
+from book.models import Book, Review, ReviewReaction
+from book.serializers import BookSerializer, ReviewSerializer, ReviewReactionSerializer
 
 
 class BookCategoryFilter(BaseFilterBackend):
@@ -41,7 +42,7 @@ class BookViewSet(ReadOnlyModelViewSet):
 
 
 class ReviewListAPIView(ListAPIView):
-    queryset = Review.objects.all()
+    queryset = Review.objects.calculated_reacts()
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
     lookup_field = "book_id"
@@ -58,29 +59,50 @@ class ReviewCreateAPIView(CreateAPIView):
     throttle_classes = (ReviewRateThrottle,)
 
 
-@api_view([HTTPMethod.POST])
-@permission_classes([IsAuthenticated])
-def like_review(request, review_id):
-    review = get_object_or_404(Review, pk=review_id)
-    review, _ = ReviewLike.objects.get_or_create(review=review, user=request.user)
-    review.is_dislike = False
-    review.save()
-    return Response(status=status.HTTP_200_OK)
+class ReactionRateThrottle(UserRateThrottle):
+    scope = 'review_react'
 
 
-@api_view([HTTPMethod.POST])
-@permission_classes([IsAuthenticated])
-def dislike_review(request, review_id):
-    review = get_object_or_404(Review, pk=review_id)
-    review, _ = ReviewLike.objects.get_or_create(review=review, user=request.user)
-    review.is_dislike = True
-    review.save()
-    return Response(status=status.HTTP_200_OK)
+class ReviewReactionAPIView(
+    CreateAPIView,
+    UpdateAPIView
+):
+    queryset = ReviewReaction.objects.all()
+    serializer_class = ReviewReactionSerializer
+    permission_classes = [IsAuthenticated]
+    throttle_classes = (ReactionRateThrottle,)
+    lookup_url_kwarg = "review_id"
+    lookup_field = "review_id"
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        request.data["review"] = kwargs["review_id"]
+        return super().create(request, *args, **kwargs)
 
 
+class ReviewReactionCreateAPIView(CreateAPIView):
+    serializer_class = ReviewReactionSerializer
+    permission_classes = [IsAuthenticated]
+    throttle_classes = (ReactionRateThrottle,)
+
+
+class ReviewReactionUpdateAPIView(UpdateAPIView):
+    queryset = ReviewReaction.objects.all()
+    serializer_class = ReviewReactionSerializer
+    permission_classes = [IsAuthenticated]
+    throttle_classes = (ReactionRateThrottle,)
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
+
+
+@extend_schema(responses={status.HTTP_204_NO_CONTENT: None, status.HTTP_404_NOT_FOUND: "Review reaction not found"})
 @api_view([HTTPMethod.DELETE])
 @permission_classes([IsAuthenticated])
-def unlike_review(request, review_id):
-    review = get_object_or_404(Review, pk=review_id)
-    ReviewLike.objects.filter(review=review, user=request.user).delete()
+def review_reaction_cancel_view(request, review_id):
+    react = ReviewReaction.objects.filter(review_id=review_id, user=request.user)
+    if not react.exists():
+        raise Http404("Review reaction not found")
     return Response(status=status.HTTP_204_NO_CONTENT)
