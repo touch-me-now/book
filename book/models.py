@@ -1,12 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from django.db.models.query import RawQuerySet
 from django.utils.translation import gettext_lazy as _
 
 
 class Category(models.Model):
+    slug = models.SlugField(max_length=255, primary_key=True)
     title = models.CharField(max_length=255)
-    slug = models.SlugField(max_length=255)
 
     class Meta:
         verbose_name_plural = _('Categories')
@@ -21,8 +22,8 @@ class Book(models.Model):
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
 
 
-class ReviewReactionQuerySet(models.QuerySet):
-    def calculated_reacts(self):
+class ReviewQuerySet(models.QuerySet):
+    def reviews_with_reactions(self) -> RawQuerySet:
         return self.raw(
             f"""
             SELECT 
@@ -55,11 +56,16 @@ class ReviewReactionQuerySet(models.QuerySet):
         )
 
 
+def get_sentinel_user():
+    sentinel_user, _ = get_user_model().objects.get_or_create(username="deleted", is_active=False)
+    return sentinel_user
+
+
 class Review(models.Model):
-    objects = ReviewReactionQuerySet.as_manager()
+    objects = ReviewQuerySet.as_manager()
 
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reviews")
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey(get_user_model(), on_delete=models.SET(get_sentinel_user), related_name="reviews")
     comment = models.TextField(blank=True, null=True)
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     created_at = models.DateTimeField(auto_now_add=True)
@@ -69,19 +75,12 @@ class Review(models.Model):
         return self.user.username
 
 
-def get_sentinel_user():
-    sentinel_user, _ = get_user_model().objects.get_or_create(username="deleted")
-    return sentinel_user
-
-
 class ReviewReaction(models.Model):
     class Reaction(models.TextChoices):
         # I thought it would be nice to leave the possibility in the future
         # to be able to expand the types of user reactions
         like = "LIKE", _("like")
         dislike = "DIS", _("dislike")
-
-    objects = ReviewReactionQuerySet.as_manager()
 
     user = models.ForeignKey(get_user_model(), on_delete=models.SET(get_sentinel_user), related_name="review_reacts")
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="reacts")
