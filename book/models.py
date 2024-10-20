@@ -10,6 +10,7 @@ class Category(models.Model):
     title = models.CharField(max_length=255)
 
     class Meta:
+        ordering = ["slug"]
         verbose_name_plural = _('Categories')
 
 
@@ -20,6 +21,9 @@ class Book(models.Model):
     description = models.TextField(blank=True, null=True)
     cover_img = models.ImageField(upload_to="books", blank=True, null=True)
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+
+    class Meta:
+        ordering = ["id"]
 
 
 class ReviewQuerySet(models.QuerySet):
@@ -73,6 +77,9 @@ class Review(models.Model):
     @property
     def author(self):
         return self.user.username
+
+    class Meta:
+        ordering = ["id"]
 
 
 class ReviewReaction(models.Model):
