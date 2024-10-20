@@ -39,6 +39,10 @@ class BookAPITest(APITestCase):
         self.assertIn("title", first_book["category"])
         self.assertIn(first_book["category"]["title"], self.test_category.title)
 
+    def test_failure_category_slug(self):
+        response = self.client.get(self.list_url, data={"category": "Failure SLUG"})
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_search_by_title(self):
         response = self.client.get(self.list_url, data={"search": "tes"})
         self.assertEquals(response.status_code, status.HTTP_200_OK)

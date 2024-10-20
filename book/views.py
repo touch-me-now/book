@@ -1,5 +1,6 @@
 from http import HTTPMethod
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_slug
 from django.http import Http404
 from django.utils.decorators import method_decorator
@@ -7,6 +8,7 @@ from django.views.decorators.cache import cache_page
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import permission_classes, api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.filters import BaseFilterBackend, SearchFilter
@@ -25,7 +27,12 @@ class BookCategoryFilter(BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         category_value = request.query_params.get(self.category_param, '')
         if category_value.strip():
-            validate_slug(category_value)
+
+            try:
+                validate_slug(category_value)
+            except DjangoValidationError as err:
+                raise ValidationError(detail=err.args[0])
+
             return queryset.filter(category__slug=category_value)
         return queryset
 
