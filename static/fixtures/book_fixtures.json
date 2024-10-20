@@ -1,0 +1,48 @@
+[
+    {
+        "model": "book.Book",
+        "fields": {
+            "title": "Gone Girl",
+            "author": "Gillian Flynn",
+            "category": "mystery",
+            "description": "Gone Girl is a crime thriller novel by American writer Gillian Flynn, published by Crown Publishing Group in June 5, 2012. The book became popular, making the New York Times Best Seller list. The sense of suspense in the novel comes from whether Nick Dunne is responsible for the disappearance of his wife Amy.",
+            "cover_img": "books/gone_girl.jpeg",
+            "rating": 1
+        }
+    },
+    {
+        "model": "book.Book",
+        "fields": {
+            "title": "The Lord of the Rings",
+            "author": "John Ronald Reuel Tolkien",
+            "category": "fantasy",
+            "description": "The Lord of the Rings is an epic[1] high fantasy novel[a] by the English author and scholar J. R. R. Tolkien. Set in Middle-earth, the story began as a sequel to Tolkien's 1937 children's book The Hobbit, but eventually developed into a much larger work. Written in stages between 1937 and 1949, The Lord of the Rings is one of the best-selling books ever written, with over 150 million copies sold.",
+            "cover_img": "books/The_Lord_of_the_Rings.gif",
+            "rating": 1
+
+        }
+    },
+    {
+        "model": "book.Book",
+        "fields": {
+            "title": "Harry Potter",
+            "author": "Joanne Rowling",
+            "category": "fantasy",
+            "description": "Orphan Harry learns he is a wizard on his 11th birthday when Hagrid escorts him to magic-teaching Hogwarts School. As a baby, his mother's love protected him and vanquished the villain Voldemort, leaving the child famous as \"The Boy who Lived.\" With his friends Hermione and Ron, Harry has to defeat the returned \"He Who Must Not Be Named.\"",
+            "cover_img": "books/harry_potter.jpg",
+            "rating": 1
+
+        }
+    },
+    {
+        "model": "book.Book",
+        "fields": {
+            "title": "The Shining",
+            "author": "Stephen Edwin King",
+            "category": "horror",
+            "description": "The Shining centers on Jack Torrance, a struggling writer and recovering alcoholic who accepts a position as the off-season caretaker of the historic Overlook Hotel in the Colorado Rockies. His family accompanies him on this job, including his young son Danny, who possesses \"the shining\", an array of psychic abilities that allow the child to glimpse the hotel's horrific true nature. Soon, after a winter storm leaves the family snowbound, the supernatural forces inhabiting the hotel influence Jack's sanity, leaving his wife and son in grave danger.",
+            "cover_img": "books/The_Shining.jpg",
+            "rating": 1
+        }
+    }
+]

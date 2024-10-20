@@ -1,0 +1,24 @@
+[
+    {
+        "model": "book.Category",
+        "pk": "mystery",
+        "fields": {
+            "title": "Mystery"
+        }
+    },
+    {
+        "model": "book.Category",
+        "pk": "fantasy",
+        "fields": {
+            "title": "Fantasy"
+        }
+    },
+    {
+        "model": "book.Category",
+        "pk": "horror",
+        "fields": {
+            "title": "Horror"
+        }
+    }
+]
+
