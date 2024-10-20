@@ -21,6 +21,9 @@ Django REST API for a simple book review book_platform where users can register,
 ---
 
 ### Docker Launch
+the project will be launched on the port that you specify in the .env file in the variable 
+NGINX_EXTERNAL_PORT
+
 all you need to do is run it
 #### run
 ```bash
@@ -30,8 +33,6 @@ docker-compose up -d --build
 ```bash
 docker-compose exec web python manage.py createsuperuser
 ```
-the project will be launched on the port that you specify in the .env file in the variable 
-NGINX_EXTERNAL_PORT
 ---
 
 ### Local Launch
