@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     'accounts',
-    'book'
+    'book',
 ]
 
 MIDDLEWARE = [
@@ -178,4 +178,8 @@ CACHES = {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": REDIS_CONNECTION_URL + '/1'
     },
+    "throttle": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_CONNECTION_URL + '/2'
+    }
 }
