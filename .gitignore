@@ -9,3 +9,15 @@ __pycache__/
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
+
+static/*
+media/*
+
+# Except the following files
+!static/fixtures/book_fixtures.json
+!static/fixtures/category_fixtures.json
+
+!media/books/gone_girl.jpeg
+!media/books/harry_potter.jpg
+!media/books/The_Lord_of_the_Rings.gif
+!media/books/The_Shining.jpg
