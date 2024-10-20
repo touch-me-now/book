@@ -8,14 +8,14 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.filters import BaseFilterBackend, SearchFilter
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.pagination import PageNumberPagination
 
 from book.models import Book, Review, ReviewReaction
-from book.serializers import BookSerializer, ReviewSerializer, ReviewReactionSerializer
+from book.serializers import BookSerializer, ReviewSerializer, ReviewReactionSerializer, BookDetailSerializer
 from book.throttles import ReviewRateThrottle, ReactionRateThrottle
 
 
@@ -33,9 +33,17 @@ class BookCategoryFilter(BaseFilterBackend):
 class BookViewSet(ReadOnlyModelViewSet):
     queryset = Book.objects.select_related("category").all()
     serializer_class = BookSerializer
+    retrieve_serializer_class = BookDetailSerializer
     pagination_class = PageNumberPagination
     filter_backends = (BookCategoryFilter, SearchFilter)
     search_fields = ["title"]
+    lookup_url_kwarg = "book_id"
+    lookup_field = "id"
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET' and self.lookup_url_kwarg in self.kwargs:
+            return self.retrieve_serializer_class
+        return super().get_serializer_class()
 
     @method_decorator(cache_page(60))
     def list(self, request, *args, **kwargs):
@@ -56,13 +64,24 @@ class ReviewCreateAPIView(CreateAPIView):
     throttle_classes = (ReviewRateThrottle,)
 
 
+class IsAuthor(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return request.user.id == obj.user_id
+
+
+class ReviewDestroyAPIView(DestroyAPIView):
+    queryset = Review.objects.all()
+    permission_classes = [IsAuthenticated, IsAuthor]
+
+
 class ReviewReactionAPIView(
     CreateAPIView,
-    UpdateAPIView
+    UpdateAPIView,
+    DestroyAPIView
 ):
     queryset = ReviewReaction.objects.all()
     serializer_class = ReviewReactionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAuthor]
     throttle_classes = (ReactionRateThrottle,)
     lookup_url_kwarg = "review_id"
     lookup_field = "review_id"
