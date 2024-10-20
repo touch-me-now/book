@@ -5,7 +5,7 @@ Django REST API for a simple book review book_platform where users can register,
 
 ---
 
-### Create environment file in BASE DIR /.env (see .env-example)
+### Create environment file in BASE DIR .env (see .env-example)
 > :warning: **Required!**
 ```text
     .
