@@ -63,8 +63,8 @@ class BookAPITest(APITestCase):
 class ReviewAPITest(APITestCase):
     def setUp(self):
         self.test_user = user_model.objects.create_user(username="test", password="secret")
-        token = RefreshToken.for_user(user=self.test_user)
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(token.access_token))
+        self._token = RefreshToken.for_user(user=self.test_user)
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(self._token.access_token))
 
         self.test_category = Category.objects.create(title="test_cat", slug="test_cat")
         self.test_book = Book.objects.create(title="test_book", author="someone", category=self.test_category, rating=1)
@@ -84,6 +84,23 @@ class ReviewAPITest(APITestCase):
         data = {"book": self.test_book.id, "rating": 1}
         response = self.client.post(url, data)
         self.assertEquals(response.status_code, status.HTTP_201_CREATED, response.json())
+
+    def test_remove_review(self):
+        review_author = user_model.objects.create_user(username="test2")
+        token = RefreshToken.for_user(user=review_author)
+        test_review = Review.objects.create(book=self.test_book, user=review_author, rating=1)
+
+        url = reverse("book-reviews-destroy", args=[test_review.id])
+        # req from self.test_user to delete
+        response_for_not_author = self.client.delete(url)
+        self.assertEquals(response_for_not_author.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(token.access_token))
+
+        response_for_author = self.client.delete(url, headers={"Authorization": "Bearer " + str(token.access_token)})
+        self.assertEqual(response_for_author.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(self._token.access_token))
 
 
 class ReviewReactionAPITest(APITestCase):
