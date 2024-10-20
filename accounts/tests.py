@@ -31,6 +31,12 @@ class UserRegisterTest(APITestCase):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("username", resp_data)
 
+        data = {'username': '\xe4\xb8\xad\xe6\x96\x87', 'password': 'secret123Ad'}
+        response = self.client.post(self.url, data, format='json')
+        resp_data = response.json()
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("username", resp_data)
+
     def test_password_validation(self):
         common_pwd = 'secret123'
         response = self.client.post(self.url, {"username": "test", "password": common_pwd}, format='json')
