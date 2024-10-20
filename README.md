@@ -43,7 +43,17 @@ You can replace all the necessary settings in the .env file using the example .e
 pip install -r requirements.txt
 ```
 
-#### 2. Filling demo data
+#### 2. Migrations
+- make migrations
+  ```bash
+  python manage.py makemigrations
+  ```
+- migrate
+  ```bash
+  python manage.py migrate
+  ```
+
+#### 3. Filling demo data
 - Categories
     ```bash 
     python manage.py loaddata static/fixtures/category_fixtures.json
@@ -53,7 +63,7 @@ pip install -r requirements.txt
     python manage.py loaddata static/fixtures/book_fixtures.json
     ```
 
-#### 2. Running tests
+#### 4. Running tests
 - all
     ```bash
     python manage.py test
@@ -66,12 +76,12 @@ pip install -r requirements.txt
     ```bash
     python manage.py test accounts
     ```
-#### 3. Creating superuser 
+#### 5. Creating superuser 
 ```bash
 python manage.py createsuperuser
 ```
 
-#### 3. Running server
+#### 6. Running server
 ```bash
 python manage.py runserver
 ```
