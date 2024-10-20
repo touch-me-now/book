@@ -1,11 +1,11 @@
 Django REST API for a simple book review book_platform where users can register, log in, browse books, and submit reviews. The focus is on creating a well-structured, efficient backend without any frontend or design components.
 
-#### Running requires:
+### Running requires:
 - Python 3.11 (tested under Python 3.11)
 
 ---
 
-#### Create environment file in BASE DIR /.env (see .env-example)
+### Create environment file in BASE DIR /.env (see .env-example)
 > :warning: **Required!**
 ```text
     .
@@ -18,17 +18,70 @@ Django REST API for a simple book review book_platform where users can register,
     └── ...
 ```
 
-#### Install dependencies
+---
+
+### Docker Launch
+all you need to do is run it
+#### run
+```bash
+docker-compose up -d --build
+```
+#### Creating superuser
+```bash
+docker-compose exec web python manage.py createsuperuser
+```
+the project will be launched on the port that you specify in the .env file in the variable 
+NGINX_EXTERNAL_PORT
+---
+
+### Local Launch
+You must have postgres and redis running for caching (I tried to achieve RESTfull)
+
+You can replace all the necessary settings in the .env file using the example .env-example
+#### 1. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-Running tests
+#### 2. Filling demo data
+- Categories
+    ```bash 
+    python manage.py loaddata static/fixtures/category_fixtures.json
+    ```
+- Books
+    ```bash 
+    python manage.py loaddata static/fixtures/book_fixtures.json
+    ```
+
+#### 2. Running tests
+- all
+    ```bash
+    python manage.py test
+    ```
+- book
+    ```bash
+    python manage.py test book
+    ```
+- accounts
+    ```bash
+    python manage.py test accounts
+    ```
+#### 3. Creating superuser 
 ```bash
-python manage.py test
+python manage.py createsuperuser
 ```
 
-Running
+#### 3. Running server
 ```bash
-python manage.py shell
+python manage.py runserver
 ```
+---
+
+After that successful launch you can navigate to the following pages in your browser
+
+- Swagger - /api/v1/schema/swagger-ui/
+- Redoc - /api/v1/schema/redoc/
+- Admin Panel - /admin
+---
+
+GOOD LUCK
