@@ -13,16 +13,10 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class BookSerializer(serializers.ModelSerializer):
     category = CategorySerializer(many=False, read_only=True)
-    reviews = serializers.HyperlinkedRelatedField(
-        many=True,
-        read_only=True,
-        view_name="book-reviews-list",
-        lookup_url_kwarg="book_id",
-    )
 
     class Meta:
         model = Book
-        fields = ("id", "title", "author", "cover_img", "rating", "category", "reviews")
+        fields = ("id", "title", "author", "cover_img", "rating", "category")
 
 
 class BookDetailSerializer(serializers.ModelSerializer):
