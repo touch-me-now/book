@@ -1,5 +1,6 @@
 from http import HTTPMethod
 
+from django.core.validators import validate_slug
 from django.http import Http404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -10,22 +11,22 @@ from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.filters import BaseFilterBackend, SearchFilter
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.throttling import UserRateThrottle
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.pagination import PageNumberPagination
 
 from book.models import Book, Review, ReviewReaction
 from book.serializers import BookSerializer, ReviewSerializer, ReviewReactionSerializer
+from book.throttles import ReviewRateThrottle, ReactionRateThrottle
 
 
 class BookCategoryFilter(BaseFilterBackend):
-    category_param = "category_id"
+    category_param = "category"
 
     def filter_queryset(self, request, queryset, view):
         category_value = request.query_params.get(self.category_param, '')
-
-        if category_value.isdigit():
-            return queryset.filter(category_id=category_value)
+        if category_value.strip():
+            validate_slug(category_value)
+            return queryset.filter(category__slug=category_value)
         return queryset
 
 
@@ -42,25 +43,17 @@ class BookViewSet(ReadOnlyModelViewSet):
 
 
 class ReviewListAPIView(ListAPIView):
-    queryset = Review.objects.calculated_reacts()
+    queryset = Review.objects.reviews_with_reactions()
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
     lookup_field = "book_id"
     lookup_url_kwarg = "book_id"
 
 
-class ReviewRateThrottle(UserRateThrottle):
-    scope = 'review'
-
-
 class ReviewCreateAPIView(CreateAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
     throttle_classes = (ReviewRateThrottle,)
-
-
-class ReactionRateThrottle(UserRateThrottle):
-    scope = 'review_react'
 
 
 class ReviewReactionAPIView(
