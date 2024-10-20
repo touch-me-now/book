@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -18,7 +19,7 @@ class RegistrationSerializer(serializers.Serializer):
 
         username = validated_data['username']
         if user_model.objects.filter(username=username).exists():
-            raise serializers.ValidationError({'username': 'Already exists!'})
+            raise serializers.ValidationError({'username': _('Already exists!')})
 
         user = user_model.objects.create_user(
             username=username,
